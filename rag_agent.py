@@ -22,8 +22,10 @@ embedding_model = OllamaEmbeddings(model="nomic-embed-text")
 #     model="text-embedding-3-small"
 # )
 client_qdrant = QdrantClient(url="http://localhost:6333")
+# client_qdrant = QdrantClient(path="./qdrant_db")
 
 vector_store = QdrantVectorStore(
+    # path="./qdrant_db",
     client=client_qdrant,
     embedding=embedding_model,
     collection_name="rag_docs",
@@ -31,10 +33,14 @@ vector_store = QdrantVectorStore(
 
 def retrieve_context(query):
     docs = vector_store.similarity_search(query, k=3)
+    if not docs:
+        return "No relevant context found."
     return "\n\n".join([doc.page_content for doc in docs])
 
 def retrieve_answer(user_query):
+    logger.info("User query: %s", user_query)
     context = retrieve_context(user_query)
+    logger.info("Retrieved context length: %d", len(context))
 
     prompt = f"""
 You are a helpful assistant.
