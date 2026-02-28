@@ -29,7 +29,8 @@ def ingest_pdf(file_path: str):
 
         chunks = text_splitter.split_documents(docs)
 
-        embedding_model = OllamaEmbeddings(model="nomic-embed-text")
+        embedding_model = OllamaEmbeddings(model="nomic-embed-text",
+                                            base_url="http://ollama:11434")
         # embedding_model = OpenAIEmbeddings(
         #     model="text-embedding-3-small",
         # )
@@ -38,7 +39,7 @@ def ingest_pdf(file_path: str):
             documents=chunks,
             embedding=embedding_model,
             collection_name=COLLECTION_NAME,
-            url="http://localhost:6333",
+            url="http://qdrant:6333",
         )
 
         logger.info("Indexing complete ✅")

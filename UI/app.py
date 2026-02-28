@@ -6,8 +6,8 @@ import os
 # add workspace root (parent of rag_project) to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from rag_project.index import ingest_pdf
-from rag_project.rag_agent import retrieve_answer
+from index import ingest_pdf
+from rag_agent import retrieve_answer
 import streamlit as st
 # import logging
 

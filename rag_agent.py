@@ -14,24 +14,34 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Ollama client
-client = Client(host="http://localhost:11434")
+client = Client(host="http://ollama:11434")
 # client = OpenAI()
-
-embedding_model = OllamaEmbeddings(model="nomic-embed-text")
+embedding_model = OllamaEmbeddings(
+    model="nomic-embed-text",
+    base_url="http://ollama:11434"
+)
+# embedding_model = OllamaEmbeddings(model="nomic-embed-text")
 # embedding_model = OpenAIEmbeddings(
 #     model="text-embedding-3-small"
 # )
-client_qdrant = QdrantClient(url="http://localhost:6333")
+client_qdrant = QdrantClient(url="http://qdrant:6333")
 # client_qdrant = QdrantClient(path="./qdrant_db")
 
-vector_store = QdrantVectorStore(
-    # path="./qdrant_db",
-    client=client_qdrant,
-    embedding=embedding_model,
-    collection_name="rag_docs",
-)
+# vector_store = QdrantVectorStore(
+#     # path="./qdrant_db",
+#     client=client_qdrant,
+#     embedding=embedding_model,
+#     collection_name="rag_docs",
+# )
+def get_vector_store():
+    return QdrantVectorStore(
+        client=client_qdrant,
+        embedding=embedding_model,
+        collection_name="rag_docs",
+    )
 
 def retrieve_context(query):
+    vector_store = get_vector_store()
     docs = vector_store.similarity_search(query, k=3)
     if not docs:
         return "No relevant context found."
@@ -54,7 +64,7 @@ Question:
 """
 
     response = client.chat(
-        model="llama3:latest",
+        model="phi3",
         messages=[{"role": "user", "content": prompt}],
     )
 

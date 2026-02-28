@@ -12,3 +12,5 @@ ollama>=0.3
 
 pypdf>=4.0
 python-dotenv>=1.0
+
+python-multipart>=0.0.5
