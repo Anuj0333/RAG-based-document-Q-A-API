@@ -2,30 +2,82 @@ version: "3.9"
 
 services:
 
+  postgres:
+    image: postgres:16
+    container_name: rag_postgres
+    restart: unless-stopped
+    environment:
+      # DATABASE_URL: postgresql://postgres:postgres@postgres:5432/rag_chat
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: rag_chat
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - rag_network
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   fastapi:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: rag-app
     container_name: rag_fastapi
     ports:
       - "8000:8000"
     depends_on:
+      - postgres
       - qdrant
       - ollama
     environment:
-      - QDRANT_HOST=qdrant
+      - QDRANT_URL=http://qdrant:6333
+      # - QDRANT_HOST=qdrant
       - OLLAMA_HOST=http://ollama:11434
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/rag_chat
     networks:
       - rag_network
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
 
   streamlit:
-    build: .
+    # build: .
+    image: rag-app
     container_name: rag_streamlit
-    command: python -m streamlit run UI/app.py --server.port=8501 --server.address=0.0.0.0
+    command: python -m streamlit run UI/fastapi_app.py --server.port=8501 --server.address=0.0.0.0
     ports:
       - "8502:8501"
     depends_on:
-      - fastapi
+      fastapi:
+        condition: service_healthy
     networks:
       - rag_network
+    volumes:
+      - ./uploads:/app/uploads
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
   qdrant:
     image: qdrant/qdrant
@@ -34,6 +86,11 @@ services:
       - "6333:6333"
     networks:
       - rag_network
+    volumes:
+      - qdrant_data:/qdrant/storage
+    env_file:
+      - .env
+    restart: unless-stopped
 
   ollama:
     image: ollama/ollama
@@ -44,9 +101,21 @@ services:
       - ollama_data:/root/.ollama
     networks:
       - rag_network
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
 networks:
   rag_network:
 
 volumes:
+  postgres_data:
   ollama_data:
+  qdrant_data:
+
+

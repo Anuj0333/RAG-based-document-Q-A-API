@@ -50,6 +50,7 @@ chroma/
 data/
 uploads/
 documents/
+fastapi_uploads/
 
 # ------------------------------
 # macOS
