@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 api_key = os.getenv("OPEN_ROUTER_API_KEY")
-print("OPEN_ROUTER_API_KEY:", api_key)
+# print("OPEN_ROUTER_API_KEY:", api_key)
 
 # memory = {}
 
@@ -60,8 +60,16 @@ embedding_model = OllamaEmbeddings(
 # embedding_model = OpenAIEmbeddings(
 #     model="text-embedding-3-small"
 # )
+# url = os.getenv("QDRANT_URL")
+# api_key=os.getenv("QDRANT_APIKEY")
+# # print("cloud_qrdant_url:",url)
+# # print("qdrant_api_key:", api_key)
+# client_qdrant = QdrantClient(
+#     url=url,
+#     api_key=api_key,
+#     cloud_inference=True
+# )
 client_qdrant = QdrantClient(url="http://localhost:6333")
-# client_qdrant = QdrantClient(path="./qdrant_db")
 
 # vector_store = QdrantVectorStore(
 #     # path="./qdrant_db",

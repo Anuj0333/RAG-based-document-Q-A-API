@@ -1,7 +1,18 @@
+import os
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 
 client = QdrantClient(url="http://localhost:6333")
+
+# url = os.getenv("QDRANT_URL")
+# api_key=os.getenv("QDRANT_APIKEY")
+# # print("cloud_qrdant_url:",url)
+# # print("qdrant_api_key:", api_key)
+# client = QdrantClient(
+#     url=url,
+#     api_key=api_key,
+#     cloud_inference=True
+# )
 
 COLLECTION_NAME = "rag_docs"
 
