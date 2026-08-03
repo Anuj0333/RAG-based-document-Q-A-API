@@ -6,9 +6,11 @@ import os
 # add workspace root (parent of rag_project) to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from rag_project.index import ingest_pdf
-from rag_project.rag_agent import retrieve_answer
+from rag_project.backend.index import ingest_pdf
+from rag_agent import retrieve_answer
+from rag_project.backend.file_deletion import delete_from_qdrant
 import streamlit as st
+
 # import logging
 
 
@@ -22,11 +24,17 @@ st.write("Upload a PDF and ask questions based on its content.")
 uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
 
 if uploaded_file is not None:
+    os.makedirs("uploads", exist_ok=True)
     with open(f"uploads/{uploaded_file.name}", "wb") as f:
         f.write(uploaded_file.getbuffer())
-    st.success(f"File '{uploaded_file.name}' uploaded successfully!")
+    st.success(f"File '{uploaded_file.name}' stored locally successfully!")
 
     if st.button("Ingest Documents"):
+        # # if file is already ingested ignore it  
+        # if os.path.exists(f"uploads/{uploaded_file.name}"):
+        #     st.warning(f"File '{uploaded_file.name}' already exists. Skipping ingestion.")
+        # else:
+
         with st.spinner("Processing and indexing..."):
             success = ingest_pdf(f"uploads/{uploaded_file.name}")
             if success:
@@ -83,10 +91,11 @@ if st.session_state.show_delete_section:
         )
 
         if st.button("Delete Selected File"):
-            file_path = os.path.join("uploads", selected_file)
             try:
+                delete_from_qdrant(selected_file)
+                file_path = os.path.join("uploads", selected_file)
                 os.remove(file_path)
-                st.success(f"Deleted '{selected_file}'")
+                st.success(f"{selected_file} deleted successfully.")
                 st.rerun()   # refresh list
             except Exception as e:
                 st.error(f"Error deleting: {str(e)}")
